@@ -35,11 +35,11 @@ type IncomingEvent struct {
 	ExtraParam string
 }
 
-type Event struct {
-	ID         int
-	ExtraParam *int
-	Comment    string
-}
+// type Event struct {
+// 	ID         int
+// 	ExtraParam *int
+// 	Comment    string
+// }
 
 type PlayerReport struct {
 	State             string
