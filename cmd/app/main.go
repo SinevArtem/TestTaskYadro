@@ -17,5 +17,9 @@ func main() {
 	if err != nil {
 		log.Println(err)
 	}
-	_ = cfg
+
+	// if err := handlers.FinalReport(&playInfo); err != nil {
+
+	// }
+
 }

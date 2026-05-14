@@ -39,10 +39,15 @@ func EventHandler(incomingEvent model.IncomingEvent, playInfo *model.PlayInfo) e
 			return fmt.Errorf("%w", err)
 		}
 	case 2:
+		entranceToTheDungeonEvent(incomingEvent, playInfo)
 	case 3:
+		playerKilledMonsterEvent(incomingEvent, playInfo)
 	case 4:
+		playerWentNextFloorEvent(incomingEvent, playInfo)
 	case 5:
+		playerWentPreviousFloorEvent(incomingEvent, playInfo)
 	case 6:
+		playerEnteredBossFloorEvent(incomingEvent, playInfo)
 	case 7:
 	case 8:
 	case 9:
@@ -54,8 +59,6 @@ func EventHandler(incomingEvent model.IncomingEvent, playInfo *model.PlayInfo) e
 
 	return nil
 }
-
-func OutgoingEvents() {}
 
 func ParseIncomingEvent(line []string) (model.IncomingEvent, error) {
 	var incomingEvent model.IncomingEvent
@@ -90,3 +93,12 @@ func ParseIncomingEvent(line []string) (model.IncomingEvent, error) {
 
 	return incomingEvent, nil
 }
+
+// func FinalReport(playInfo *model.PlayInfo) error {
+// 	fmt.Println("Final report:")
+// 	for key, value := range playInfo.Players {
+
+// 		fmt.Printf("[%s] %d [%d, %d, %d] HP:%d\n", v)
+// 	}
+// 	return nil
+// }
