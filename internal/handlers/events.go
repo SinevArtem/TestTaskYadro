@@ -147,6 +147,7 @@ func playerWentPreviousFloorEvent(incomingEvent model.IncomingEvent, playInfo *m
 
 	player.CurrentFloor--
 	player.CurrentFloorEnterTime = &incomingEvent.EventTime
+	player.FloorCleared = true
 
 	fmt.Printf("[%s] Player [%d] went to the previous floor\n", incomingEvent.EventTime.Format("15:04:05"), incomingEvent.PlayerID)
 }

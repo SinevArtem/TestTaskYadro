@@ -4,12 +4,15 @@
 
 Предполагается, что если в подземелье 2 этажа, то 2 этажа занимают монстры, а 3 этаж только босс.
 
-
 Подразумевается, что у игроков разные игры (имеется в виду, что они не имеют общих монстров, боссов). Например, если один игрок убивает своего босса, то у другого он остается.
+
+Событие 6 возможно только после события 4.
+
+
 ## Запуск
 
 ```bash
-go run cmd/app/main.go --config=./config/config.json < events
+make
 ```
 
 ## Пример вывода
@@ -44,14 +47,11 @@ Final report:
 ## Запуск тестов 
 
 ```bash
-go test ./... -v
+make test
 ```
 
 Покрытие:
 
-```
-        TestTaskYadro/cmd/app           coverage: 0.0% of statements
-ok      TestTaskYadro/internal/config   (cached)        coverage: 84.0% of statements
-ok      TestTaskYadro/internal/handlers (cached)        coverage: 84.0% of statements
-ok      TestTaskYadro/internal/model    (cached)        coverage: 100.0% of statements
+```bash
+make test-cover
 ```

@@ -16,7 +16,13 @@ func ReadEventsInFile(playInfo *model.PlayInfo) error {
 	countLine := 0
 	for scanner.Scan() {
 		countLine++
+
 		line := strings.Split(scanner.Text(), " ")
+
+		if len(line) == 1 && line[0] == "" {
+			continue
+		}
+
 		incomingEvent, err := parseIncomingEvent(line)
 		if err != nil {
 			return fmt.Errorf("error parse incoming event: %w, line №%d", err, countLine)
