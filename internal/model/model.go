@@ -14,7 +14,7 @@ type Player struct {
 	ID                    int
 	Registered            bool
 	InDungeon             bool            // в подземелье
-	CurrentFloor          int             // 1-based, этаж босса = Floors+1
+	CurrentFloor          int             // если Floor=2, то 1 с монстрами и 1 с боссом
 	KilledOnCurrent       int             // сколько монстров убито на текущем этаже
 	Health                int             // 0-100
 	EnterTime             *time.Time      // когда вошёл в подземелье
@@ -25,9 +25,7 @@ type Player struct {
 	BossKillTime          *time.Time      // когда убил босса
 	LeaveTime             *time.Time      // когда покинул
 	BossFloorEnterTime    *time.Time      // когда вошёл на этаж босса
-	Disqualified          bool
-	Dead                  bool
-	Status                Status // SUCCESS, FAIL, DISQUAL
+	Status                Status          // SUCCESS, FAIL, DISQUAL
 }
 
 type IncomingEvent struct {

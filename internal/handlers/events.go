@@ -230,11 +230,10 @@ func playerCannotContinue(incomingEvent model.IncomingEvent, playInfo *model.Pla
 		return
 	}
 
-	if player.Disqualified || player.Dead {
+	if player.Status == model.DISQUAL || player.Status == model.FAIL {
 		return
 	}
 
-	player.Disqualified = true
 	player.Status = model.DISQUAL
 	player.LeaveTime = &incomingEvent.EventTime
 
@@ -282,7 +281,6 @@ func playerGetDamageEvent(incomingEvent model.IncomingEvent, playInfo *model.Pla
 
 	if player.Health <= 0 {
 		player.Health = 0
-		player.Dead = true
 		player.Status = model.FAIL
 		player.LeaveTime = &incomingEvent.EventTime
 		playerDeadEvent(incomingEvent.EventTime, incomingEvent.PlayerID)
@@ -298,14 +296,12 @@ func playerDisqualifiedEvent(time time.Time, playerID int, playInfo *model.PlayI
 
 	if _, ok := playInfo.Players[playerID]; !ok {
 		playInfo.Players[playerID] = &model.Player{
-			ID:           playerID,
-			Registered:   false,
-			Disqualified: true,
-			Status:       model.DISQUAL,
-			Health:       100,
+			ID:         playerID,
+			Registered: false,
+			Status:     model.DISQUAL,
+			Health:     100,
 		}
 	} else {
-		playInfo.Players[playerID].Disqualified = true
 		playInfo.Players[playerID].Status = model.DISQUAL
 	}
 
@@ -354,7 +350,7 @@ func validateAndGetPlayer(event model.IncomingEvent, playInfo *model.PlayInfo) *
 		return nil
 	}
 
-	if player.Disqualified {
+	if player.Status == model.DISQUAL {
 		return nil
 	}
 
@@ -363,7 +359,7 @@ func validateAndGetPlayer(event model.IncomingEvent, playInfo *model.PlayInfo) *
 		return nil
 	}
 
-	if player.Dead {
+	if player.Status == model.FAIL {
 		playerDeadEvent(event.EventTime, event.PlayerID)
 		return nil
 	}

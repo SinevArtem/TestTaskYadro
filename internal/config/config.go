@@ -3,6 +3,7 @@ package config
 import (
 	"encoding/json"
 	"flag"
+	"fmt"
 	"log"
 	"os"
 )
@@ -33,14 +34,8 @@ func MustLoad() *Config {
 		log.Fatalf("cannot decode config: %s", err)
 	}
 
-	if cfg.Floors <= 0 {
-		log.Fatal("Floors <= 0")
-	}
-	if cfg.Monsters <= 0 {
-		log.Fatal("Monsters <= 0")
-	}
-	if cfg.Duration <= 0 {
-		log.Fatal("Duration <= 0")
+	if err := cfg.Validate(); err != nil {
+		log.Fatal(err)
 	}
 
 	return &cfg
@@ -53,4 +48,17 @@ func fetchConfigPath() string {
 	flag.Parse()
 
 	return path
+}
+
+func (c *Config) Validate() error {
+	if c.Floors <= 0 {
+		return fmt.Errorf("Floors must be > 0, got %d", c.Floors)
+	}
+	if c.Monsters <= 0 {
+		return fmt.Errorf("Monsters must be > 0, got %d", c.Monsters)
+	}
+	if c.Duration <= 0 {
+		return fmt.Errorf("Duration must be > 0, got %d", c.Duration)
+	}
+	return nil
 }
