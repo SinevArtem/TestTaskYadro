@@ -4,7 +4,7 @@ CONFIG_PATH=./config/config.json
 EVENTS_PATH=./events
 
 # CONFIG_PATH=./common/test_files/test_config.json
-# EVENTS_PATH=./common/test_files/events_test_3
+# EVENTS_PATH=./common/test_files/events_test_1
 
 .PHONY: all build run test test-cover clean
 

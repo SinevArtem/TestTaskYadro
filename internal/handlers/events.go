@@ -252,6 +252,11 @@ func playerRecoveringEvent(incomingEvent model.IncomingEvent, playInfo *model.Pl
 		return nil
 	}
 
+	if !player.InDungeon {
+		playerImpossibleMoveEvent(incomingEvent.EventTime, incomingEvent.PlayerID, 10)
+		return nil
+	}
+
 	health, err := strconv.Atoi(incomingEvent.ExtraParam)
 	if err != nil {
 		return fmt.Errorf("error parse health count")
@@ -275,6 +280,11 @@ func playerGetDamageEvent(incomingEvent model.IncomingEvent, playInfo *model.Pla
 		return nil
 	}
 
+	if !player.InDungeon {
+		playerImpossibleMoveEvent(incomingEvent.EventTime, incomingEvent.PlayerID, 11)
+		return nil
+	}
+
 	damage, err := strconv.Atoi(incomingEvent.ExtraParam)
 	if err != nil {
 		return fmt.Errorf("error parse damage count")
@@ -294,7 +304,7 @@ func playerGetDamageEvent(incomingEvent model.IncomingEvent, playInfo *model.Pla
 	return nil
 }
 
-//---------------------------------------------------------------------------------------------
+//=============================================================================================
 
 // Outgoing events №31
 func playerDisqualifiedEvent(time time.Time, playerID int, playInfo *model.PlayInfo) {
@@ -330,7 +340,7 @@ func playerImpossibleMoveEvent(time time.Time, playerID int, eventID int) {
 		eventID)
 }
 
-//---------------------------------------------------------------------------------------------
+//=============================================================================================
 
 func isDungeonOpen(eventTime time.Time, cfg *config.Config) bool {
 	openTime, _ := time.Parse("15:04:05", cfg.OpenAt)

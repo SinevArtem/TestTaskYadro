@@ -94,6 +94,9 @@ func parseIncomingEvent(line []string) (model.IncomingEvent, error) {
 	if err != nil {
 		return incomingEvent, fmt.Errorf("error parse PlayerID")
 	}
+	if playerID <= 0 {
+		return incomingEvent, fmt.Errorf("player ID must be positive, got %d", playerID)
+	}
 	incomingEvent.PlayerID = playerID
 
 	eventID, err := strconv.Atoi(line[2])
