@@ -4,6 +4,7 @@ import (
 	"TestTaskYadro/internal/config"
 	"TestTaskYadro/internal/model"
 	"fmt"
+	"strconv"
 	"time"
 )
 
@@ -67,7 +68,7 @@ func playerKilledMonsterEvent(incomingEvent model.IncomingEvent, playInfo *model
 		return
 	}
 
-	if player.CurrentFloor == playInfo.Config.Floors+1 {
+	if player.CurrentFloor == playInfo.Config.Floors {
 		playerImpossibleMoveEvent(incomingEvent.EventTime, incomingEvent.PlayerID, 3)
 		return
 	}
@@ -106,7 +107,7 @@ func playerWentNextFloorEvent(incomingEvent model.IncomingEvent, playInfo *model
 		return
 	}
 
-	if player.CurrentFloor == playInfo.Config.Floors+1 {
+	if player.CurrentFloor >= playInfo.Config.Floors {
 		playerImpossibleMoveEvent(incomingEvent.EventTime, incomingEvent.PlayerID, 4)
 		return
 	}
@@ -160,44 +161,161 @@ func playerEnteredBossFloorEvent(incomingEvent model.IncomingEvent, playInfo *mo
 		return
 	}
 
-	if player.CurrentFloor == playInfo.Config.Floors+1 {
-		playerImpossibleMoveEvent(incomingEvent.EventTime, incomingEvent.PlayerID, 6)
+	if player.CurrentFloor == playInfo.Config.Floors {
+		player.CurrentFloorEnterTime = &incomingEvent.EventTime
+
+		fmt.Printf("[%s] Player [%d] entered the boss's floor\n", incomingEvent.EventTime.Format("15:04:05"), incomingEvent.PlayerID)
+
+	}
+
+}
+
+// Incoming events №7
+func playerKilledBossEvent(incomingEvent model.IncomingEvent, playInfo *model.PlayInfo) {
+	player := validateAndGetPlayer(incomingEvent, playInfo)
+	if player == nil {
+		return
+	}
+
+	if !player.InDungeon {
+		playerImpossibleMoveEvent(incomingEvent.EventTime, incomingEvent.PlayerID, 7)
 		return
 	}
 
 	if player.CurrentFloor != playInfo.Config.Floors {
-		playerImpossibleMoveEvent(incomingEvent.EventTime, incomingEvent.PlayerID, 6)
+		playerImpossibleMoveEvent(incomingEvent.EventTime, incomingEvent.PlayerID, 7)
 		return
 	}
 
-	if !player.FloorCleared {
-		playerImpossibleMoveEvent(incomingEvent.EventTime, incomingEvent.PlayerID, 6)
+	if player.BossDefeated {
+		playerImpossibleMoveEvent(incomingEvent.EventTime, incomingEvent.PlayerID, 7)
 		return
 	}
 
-	player.CurrentFloor++
-	player.CurrentFloorEnterTime = &incomingEvent.EventTime
+	player.BossDefeated = true
+	player.BossKillTime = &incomingEvent.EventTime
 
-	fmt.Printf("[%s] Player [%d] entered the boss's floor\n", incomingEvent.EventTime.Format("15:04:05"), incomingEvent.PlayerID)
+	fmt.Printf("[%s] Player [%d] killed the boss\n", incomingEvent.EventTime.Format("15:04:05"), incomingEvent.PlayerID)
+
+}
+
+// Incoming events №8
+func playerLeftDungeonEvent(incomingEvent model.IncomingEvent, playInfo *model.PlayInfo) {
+	player := validateAndGetPlayer(incomingEvent, playInfo)
+	if player == nil {
+		return
+	}
+
+	if !player.InDungeon {
+		playerImpossibleMoveEvent(incomingEvent.EventTime, incomingEvent.PlayerID, 8)
+		return
+	}
+
+	player.InDungeon = false
+	player.LeaveTime = &incomingEvent.EventTime
+
+	fmt.Printf("[%s] Player [%d] left the dungeon\n", incomingEvent.EventTime.Format("15:04:05"), incomingEvent.PlayerID)
+
+}
+
+// Incoming events №9
+func playerCannotContinue(incomingEvent model.IncomingEvent, playInfo *model.PlayInfo) {
+
+	player, ok := playInfo.Players[incomingEvent.PlayerID]
+
+	if !ok || !player.Registered {
+		playerDisqualifiedEvent(incomingEvent.EventTime, incomingEvent.PlayerID, playInfo)
+		return
+	}
+
+	if player.Disqualified || player.Dead {
+		return
+	}
+
+	player.Disqualified = true
+	player.LeaveTime = &incomingEvent.EventTime
+
+	playerDisqualifiedEvent(incomingEvent.EventTime, incomingEvent.PlayerID, playInfo)
+}
+
+// Incoming events №10
+func playerRecoveringEvent(incomingEvent model.IncomingEvent, playInfo *model.PlayInfo) error {
+	player := validateAndGetPlayer(incomingEvent, playInfo)
+	if player == nil {
+		return nil
+	}
+
+	health, err := strconv.Atoi(incomingEvent.ExtraParam)
+	if err != nil {
+		return fmt.Errorf("error parse health count")
+	}
+
+	player.Health += health
+	if player.Health > 100 {
+		player.Health = 100
+	}
+
+	fmt.Printf("[%s] Player [%d] has restored [%d] of health\n", incomingEvent.EventTime.Format("15:04:05"), incomingEvent.PlayerID, health)
+
+	return nil
+
+}
+
+// Incoming events №11
+func playerGetDamageEvent(incomingEvent model.IncomingEvent, playInfo *model.PlayInfo) error {
+	player := validateAndGetPlayer(incomingEvent, playInfo)
+	if player == nil {
+		return nil
+	}
+
+	damage, err := strconv.Atoi(incomingEvent.ExtraParam)
+	if err != nil {
+		return fmt.Errorf("error parse damage count")
+	}
+
+	player.Health -= damage
+
+	fmt.Printf("[%s] Player [%d] recieved [%d] of damage\n", incomingEvent.EventTime.Format("15:04:05"), incomingEvent.PlayerID, damage)
+
+	if player.Health <= 0 {
+		player.Health = 0
+		player.Dead = true
+		player.LeaveTime = &incomingEvent.EventTime
+		playerDeadEvent(incomingEvent.EventTime, incomingEvent.PlayerID)
+	}
+
+	return nil
 }
 
 //---------------------------------------------------------------------------------------------
 
-// Incoming events №31
-func playerDisqualifiedEvent(time time.Time, playerID int) {
+// Outgoing events №31
+func playerDisqualifiedEvent(time time.Time, playerID int, playInfo *model.PlayInfo) {
+
+	if _, ok := playInfo.Players[playerID]; !ok {
+		playInfo.Players[playerID] = &model.Player{
+			ID:           playerID,
+			Registered:   false,
+			Disqualified: true,
+			Health:       100,
+		}
+	} else {
+		playInfo.Players[playerID].Disqualified = true
+	}
+
 	fmt.Printf("[%s] Player [%d] is disqualified\n",
 		time.Format("15:04:05"),
 		playerID)
 }
 
-// Incoming events №32
+// Outgoing events №32
 func playerDeadEvent(time time.Time, playerID int) {
 	fmt.Printf("[%s] Player [%d] is dead\n",
 		time.Format("15:04:05"),
 		playerID)
 }
 
-// Incoming events №33
+// Outgoing events №33
 func playerImpossibleMoveEvent(time time.Time, playerID int, eventID int) {
 	fmt.Printf("[%s] Player [%d] makes imposible move [%d]\n",
 		time.Format("15:04:05"),
@@ -225,18 +343,22 @@ func isDungeonOpen(eventTime time.Time, cfg *config.Config) bool {
 func validateAndGetPlayer(event model.IncomingEvent, playInfo *model.PlayInfo) *model.Player {
 	player, ok := playInfo.Players[event.PlayerID]
 
-	if !ok || !player.Registered {
-		playerDisqualifiedEvent(event.EventTime, event.PlayerID)
+	if !ok {
+		playerDisqualifiedEvent(event.EventTime, event.PlayerID, playInfo)
+		return nil
+	}
+
+	if player.Disqualified {
+		return nil
+	}
+
+	if !player.Registered {
+		playerDisqualifiedEvent(event.EventTime, event.PlayerID, playInfo)
 		return nil
 	}
 
 	if player.Dead {
 		playerDeadEvent(event.EventTime, event.PlayerID)
-		return nil
-	}
-
-	if player.Disqualified {
-		playerDisqualifiedEvent(event.EventTime, event.PlayerID)
 		return nil
 	}
 

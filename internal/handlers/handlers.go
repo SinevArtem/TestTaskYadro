@@ -17,12 +17,12 @@ func ReadEventsInFile(playInfo *model.PlayInfo) error {
 	for scanner.Scan() {
 		countLine++
 		line := strings.Split(scanner.Text(), " ")
-		incomingEvent, err := ParseIncomingEvent(line)
+		incomingEvent, err := parseIncomingEvent(line)
 		if err != nil {
 			return fmt.Errorf("error parse incoming event: %w, line №%d", err, countLine)
 		}
 
-		err = EventHandler(incomingEvent, playInfo)
+		err = eventHandler(incomingEvent, playInfo)
 		if err != nil {
 			return fmt.Errorf("%w", err)
 		}
@@ -32,7 +32,7 @@ func ReadEventsInFile(playInfo *model.PlayInfo) error {
 	return nil
 }
 
-func EventHandler(incomingEvent model.IncomingEvent, playInfo *model.PlayInfo) error {
+func eventHandler(incomingEvent model.IncomingEvent, playInfo *model.PlayInfo) error {
 	switch incomingEvent.EventID {
 	case 1:
 		if err := playerRegistrationEvent(incomingEvent, playInfo); err != nil {
@@ -49,10 +49,19 @@ func EventHandler(incomingEvent model.IncomingEvent, playInfo *model.PlayInfo) e
 	case 6:
 		playerEnteredBossFloorEvent(incomingEvent, playInfo)
 	case 7:
+		playerKilledBossEvent(incomingEvent, playInfo)
 	case 8:
+		playerLeftDungeonEvent(incomingEvent, playInfo)
 	case 9:
+		playerCannotContinue(incomingEvent, playInfo)
 	case 10:
+		if err := playerRecoveringEvent(incomingEvent, playInfo); err != nil {
+			return fmt.Errorf("%w", err)
+		}
 	case 11:
+		if err := playerGetDamageEvent(incomingEvent, playInfo); err != nil {
+			return fmt.Errorf("%w", err)
+		}
 	default:
 		return fmt.Errorf("there is no such event")
 	}
@@ -60,7 +69,7 @@ func EventHandler(incomingEvent model.IncomingEvent, playInfo *model.PlayInfo) e
 	return nil
 }
 
-func ParseIncomingEvent(line []string) (model.IncomingEvent, error) {
+func parseIncomingEvent(line []string) (model.IncomingEvent, error) {
 	var incomingEvent model.IncomingEvent
 
 	if len(line) < 3 {

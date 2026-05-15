@@ -5,6 +5,14 @@ import (
 	"time"
 )
 
+type Status int
+
+const (
+	SUCCESS Status = iota + 1
+	FAIL
+	DISQUAL
+)
+
 type PlayInfo struct {
 	Players map[int]*Player
 	Config  *config.Config
