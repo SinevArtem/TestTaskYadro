@@ -18,6 +18,7 @@ func playerRegistrationEvent(incomingEvent model.IncomingEvent, playInfo *model.
 		ID:         incomingEvent.PlayerID,
 		Registered: true,
 		Health:     100,
+		Status:     0,
 	}
 
 	fmt.Printf("[%s] Player [%d] registered\n",
@@ -167,6 +168,9 @@ func playerEnteredBossFloorEvent(incomingEvent model.IncomingEvent, playInfo *mo
 		player.BossFloorEnterTime = &incomingEvent.EventTime
 		fmt.Printf("[%s] Player [%d] entered the boss's floor\n", incomingEvent.EventTime.Format("15:04:05"), incomingEvent.PlayerID)
 
+	} else {
+		playerImpossibleMoveEvent(incomingEvent.EventTime, incomingEvent.PlayerID, 6)
+		return
 	}
 
 }

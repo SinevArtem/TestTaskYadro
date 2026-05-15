@@ -7,7 +7,7 @@ import (
 	"log"
 )
 
-// go run cmd/app/main.go --config=./config/config.json
+// go run cmd/app/main.go --config=./config/config.json < events
 func main() {
 	cfg := config.MustLoad()
 

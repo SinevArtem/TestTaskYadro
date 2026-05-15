@@ -8,6 +8,16 @@ import (
 )
 
 func FinalReport(playInfo *model.PlayInfo) error {
+	for _, player := range playInfo.Players {
+		if player.Status == 0 {
+			if player.EnterTime == nil {
+				player.Status = model.DISQUAL
+			} else if !player.BossDefeated {
+				player.Status = model.FAIL
+			}
+		}
+	}
+
 	fmt.Println("Final report:")
 	for _, player := range playInfo.Players {
 
