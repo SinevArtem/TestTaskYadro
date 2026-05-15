@@ -36,6 +36,7 @@ func entranceToTheDungeonEvent(incomingEvent model.IncomingEvent, playInfo *mode
 	}
 
 	if player.InDungeon {
+
 		playerImpossibleMoveEvent(incomingEvent.EventTime, incomingEvent.PlayerID, 2)
 		return
 	}
@@ -163,7 +164,7 @@ func playerEnteredBossFloorEvent(incomingEvent model.IncomingEvent, playInfo *mo
 
 	if player.CurrentFloor == playInfo.Config.Floors {
 		player.CurrentFloorEnterTime = &incomingEvent.EventTime
-
+		player.BossFloorEnterTime = &incomingEvent.EventTime
 		fmt.Printf("[%s] Player [%d] entered the boss's floor\n", incomingEvent.EventTime.Format("15:04:05"), incomingEvent.PlayerID)
 
 	}
@@ -194,6 +195,7 @@ func playerKilledBossEvent(incomingEvent model.IncomingEvent, playInfo *model.Pl
 
 	player.BossDefeated = true
 	player.BossKillTime = &incomingEvent.EventTime
+	player.Status = model.SUCCESS
 
 	fmt.Printf("[%s] Player [%d] killed the boss\n", incomingEvent.EventTime.Format("15:04:05"), incomingEvent.PlayerID)
 
@@ -233,6 +235,7 @@ func playerCannotContinue(incomingEvent model.IncomingEvent, playInfo *model.Pla
 	}
 
 	player.Disqualified = true
+	player.Status = model.DISQUAL
 	player.LeaveTime = &incomingEvent.EventTime
 
 	playerDisqualifiedEvent(incomingEvent.EventTime, incomingEvent.PlayerID, playInfo)
@@ -280,6 +283,7 @@ func playerGetDamageEvent(incomingEvent model.IncomingEvent, playInfo *model.Pla
 	if player.Health <= 0 {
 		player.Health = 0
 		player.Dead = true
+		player.Status = model.FAIL
 		player.LeaveTime = &incomingEvent.EventTime
 		playerDeadEvent(incomingEvent.EventTime, incomingEvent.PlayerID)
 	}
@@ -297,10 +301,12 @@ func playerDisqualifiedEvent(time time.Time, playerID int, playInfo *model.PlayI
 			ID:           playerID,
 			Registered:   false,
 			Disqualified: true,
+			Status:       model.DISQUAL,
 			Health:       100,
 		}
 	} else {
 		playInfo.Players[playerID].Disqualified = true
+		playInfo.Players[playerID].Status = model.DISQUAL
 	}
 
 	fmt.Printf("[%s] Player [%d] is disqualified\n",

@@ -18,8 +18,8 @@ func main() {
 		log.Println(err)
 	}
 
-	// if err := handlers.FinalReport(&playInfo); err != nil {
-
-	// }
+	if err := handlers.FinalReport(&playInfo); err != nil {
+		log.Println(err)
+	}
 
 }

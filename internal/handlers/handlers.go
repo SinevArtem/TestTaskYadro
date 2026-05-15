@@ -102,12 +102,3 @@ func parseIncomingEvent(line []string) (model.IncomingEvent, error) {
 
 	return incomingEvent, nil
 }
-
-// func FinalReport(playInfo *model.PlayInfo) error {
-// 	fmt.Println("Final report:")
-// 	for key, value := range playInfo.Players {
-
-// 		fmt.Printf("[%s] %d [%d, %d, %d] HP:%d\n", v)
-// 	}
-// 	return nil
-// }

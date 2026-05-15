@@ -5,14 +5,6 @@ import (
 	"time"
 )
 
-type Status int
-
-const (
-	SUCCESS Status = iota + 1
-	FAIL
-	DISQUAL
-)
-
 type PlayInfo struct {
 	Players map[int]*Player
 	Config  *config.Config
@@ -32,8 +24,10 @@ type Player struct {
 	BossDefeated          bool            // убит ли босс
 	BossKillTime          *time.Time      // когда убил босса
 	LeaveTime             *time.Time      // когда покинул
+	BossFloorEnterTime    *time.Time      // когда вошёл на этаж босса
 	Disqualified          bool
 	Dead                  bool
+	Status                Status // SUCCESS, FAIL, DISQUAL
 }
 
 type IncomingEvent struct {
@@ -43,17 +37,32 @@ type IncomingEvent struct {
 	ExtraParam string
 }
 
-// type Event struct {
-// 	ID         int
-// 	ExtraParam *int
-// 	Comment    string
-// }
-
 type PlayerReport struct {
 	State             string
 	PlayerID          int
-	TimeInTheDungeon  time.Time // время проведенное в подземелье
-	AverageFloorTime  time.Time // среднее время этажа
-	TimeToKillTheBoss time.Time // вермя на босса
+	TimeInTheDungeon  time.Duration // время проведенное в подземелье
+	AverageFloorTime  time.Duration // среднее время этажа
+	TimeToKillTheBoss time.Duration // вермя на босса
 	Health            int
+}
+
+type Status int
+
+const (
+	SUCCESS Status = iota + 1
+	FAIL
+	DISQUAL
+)
+
+func (s Status) String() string {
+	switch s {
+	case SUCCESS:
+		return "SUCCESS"
+	case FAIL:
+		return "FAIL"
+	case DISQUAL:
+		return "DISQUAL"
+	default:
+		return "UNKNOWN"
+	}
 }
